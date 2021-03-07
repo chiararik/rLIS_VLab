@@ -1,0 +1,14 @@
+{
+  "scripts": [
+    {
+      "repoPath": "install_packages.R",
+      "targetPath": "install_packages.R",
+      "pathType": "FILE"
+ },
+    {
+      "repoPath": "snowCover.R",
+      "targetPath": "snowCover.R",
+      "pathType": "FILE"
+ }
+  ]
+}

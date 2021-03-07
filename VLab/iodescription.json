@@ -1,0 +1,26 @@
+{
+  "inputs": [
+    {
+      "id": "InData",
+      "inputType": "individual",
+      "valueType": "value",
+      "description": "URL to download the zip archive containing the S2 L1C with FMASK and L2A, the DEM and eventually an AOI",
+      "name": "input",
+      "obligation": true,
+      "hasDefault": false,
+      "valueSchema": "url",
+      "target": "/01_data/input.zip"
+	}
+  ],
+  "outputs": [
+    {
+      "id": "Snow&Cloud",
+      "outputType": "individual",
+      "valueType": "value",
+      "description": "Snow cover",
+      "name": "OutData",
+      "valueSchema": "url",
+      "target": "/01_data/output/Snow&Cloud.tif"
+ }
+  ]
+}
