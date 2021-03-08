@@ -91,7 +91,6 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
     B4_20m <- crop(B4_20m, aoi)
     B11_20m <- crop(B11_20m, aoi)
     SCL_20m <- crop(SCL_20m, aoi)
-    Fmask_20m <- crop(Fmask_20m, aoi)
   }
   
   ###### Mask no data from SCL 
@@ -163,7 +162,7 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   s1 <- 0.100
   s2 <- 0.250
   
-  ### NDSI a 20m 
+  ### NDSI at 20m 
   
   NDSI_crop_20m <- ((B3_crop_20m_masking_SCL_FLOAT - B11_crop_20m_masking_SCL_FLOAT)/(B3_crop_20m_masking_SCL_FLOAT + B11_crop_20m_masking_SCL_FLOAT))*10000
   NDSI_crop_20m[NDSI_crop_20m < -10000] = -10000
