@@ -5,6 +5,11 @@
       "targetPath": "install_packages.R",
       "pathType": "FILE"
  },
+ {
+      "repoPath": "run.sh",
+      "targetPath": "run.sh",
+      "pathType": "FILE"
+ },
     {
       "repoPath": "snowCover.R",
       "targetPath": "snowCover.R",
