@@ -17,7 +17,4 @@ COPY /02_code/snowCover.R /02_code/snowCover.R
 
 ## install R-packages
 RUN Rscript /02_code/install_packages.R
-<<<<<<< HEAD
 
-=======
->>>>>>> d554cf970d6379eef7b8fcbb7c1b21dda4073f2d
