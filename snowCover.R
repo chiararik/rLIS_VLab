@@ -40,7 +40,8 @@ num_zip <- length(elenco_file_zip)
 
 for (i in elenco_file_zip){
   s2_zip = i
-  unzip(s2_zip)
+  unzip(s2_zip, files = NULL, list = FALSE, overwrite = TRUE,
+        junkpaths = FALSE, exdir = ".", unzip = "internal", setTimes = FALSE)
 }
 
 elenco_file_SAFE <- list.files(pattern=glob2rx('S2*_MSIL2A*.SAFE'))
