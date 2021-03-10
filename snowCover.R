@@ -8,8 +8,7 @@ print("Starting Workflow")
 
 ##### Input files:
 
-# Sentinel-2 L2A (mandatory)
-# Sentinel-2 L1C with FMASK output (mandatory)
+# Sentinel-2 L2A with FMASK output (mandatory)
 # DEM (mandatory)
 # AOI (optional)
 
@@ -19,7 +18,6 @@ repo <- getwd()
 print(repo)
 repo_data <- paste0(repo,"/data")
 setwd(repo_data)
-
 
 ###### Read AOI (if present) and DEM
 
@@ -36,6 +34,14 @@ if (aoizip == TRUE){
 dem <- raster("DEM.tif")
 
 ####### Read Sentinel-2 L2A images
+
+elenco_file_zip <- list.files(pattern=glob2rx('S2*_MSIL2A*.zip'))
+num_zip <- length(elenco_file_zip)
+
+for (i in elenco_file_zip){
+  s2_zip = i
+  unzip(s2_zip)
+}
 
 elenco_file_SAFE <- list.files(pattern=glob2rx('S2*_MSIL2A*.SAFE'))
 
@@ -59,12 +65,12 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   end_name_file<-substr(x,12,60)
   
   # Find Fmask 
-  image_l1_name <- paste0(sensore,"_MSIL1C_",end_name_file,".SAFE",collapse = NULL, recycle0 = FALSE)
-  path_mask_1 <- dir(path=paste0(repo_data,"/",image_l1_name,"/GRANULE"),full.names = FALSE,recursive = FALSE,pattern = "L1C_*")
-  path_mask_cloud <- paste0(repo_data,"/",image_l1_name,"/GRANULE/",path_mask_1,"/FMASK_DATA")
+  image_l2_name <- paste0(sensore,"_MSIL2A_",end_name_file,".SAFE",collapse = NULL, recycle0 = FALSE)
+  path_bands_1 <- dir(path=paste0(repo_data,"/",image_l2_name,"/GRANULE"),full.names = FALSE,recursive = FALSE,pattern = "L2A_*")
+  path_mask_cloud <- paste0(repo_data,"/",image_l2_name,"/GRANULE/",path_bands_1,"/FMASK_DATA")
   print(path_mask_cloud)
   setwd(path_mask_cloud)
-
+  
   Fmask_20m <- raster(list.files(pattern=glob2rx('*_Fmask.tif')))
   if (aoifile == TRUE) {
     Fmask_20m <- crop(Fmask_20m, aoi)
@@ -72,8 +78,6 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   
   setwd(repo_data)
   
-  image_l2_name <- paste0(sensore,"_MSIL2A_",end_name_file,".SAFE",collapse = NULL, recycle0 = FALSE)
-  path_bands_1 <-dir(path=paste0(image_l2_name,"/GRANULE"),full.names = FALSE,recursive = FALSE,pattern = "L2A_*")
   path_bands_20m <- "IMG_DATA/R20m"
   path_bands_def_20m <- paste0(repo_data,"/",image_l2_name,"/GRANULE/",path_bands_1,"/",path_bands_20m)
   setwd(path_bands_def_20m)
