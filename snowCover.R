@@ -16,20 +16,20 @@ print("Starting Workflow")
 ###### Set working directory
 
 repo <- getwd()
-repo_data(paste0(repo,"/01_data"))
+print(repo)
+repo_data <- paste0(repo,"/data")
 setwd(repo_data)
 
-###### UNZIP input files
 
-unzip("input.zip", files = NULL, list = FALSE, overwrite = TRUE,
-      junkpaths = FALSE, exdir = ".", unzip = "internal", setTimes = FALSE)
+###### Read AOI (if present) and DEM
 
-print("Input files unzipped")
+aoizip <- file.exists("aoi.zip")
+aoifile <- FALSE
 
-###### Read AOI (if present) and DEM 
-aoifile <- file.exists("aoi.shp")
-
-if (aoifile == TRUE){
+if (aoizip == TRUE){
+  aoifile <- TRUE
+  unzip("aoi.zip", files = NULL, list = FALSE, overwrite = TRUE,
+        junkpaths = FALSE, exdir = ".", unzip = "internal", setTimes = FALSE)
   aoi <- shapefile("aoi.shp")
 }
 
@@ -61,7 +61,8 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   # Find Fmask 
   image_l1_name <- paste0(sensore,"_MSIL1C_",end_name_file,".SAFE",collapse = NULL, recycle0 = FALSE)
   path_mask_1 <- dir(path=paste0(repo_data,"/",image_l1_name,"/GRANULE"),full.names = FALSE,recursive = FALSE,pattern = "L1C_*")
-  path_mask_cloud <- paste0(repo_data,"/",image_l1_name,"/GRANULE/",path_mask_1,"/FMASK_DATA")   
+  path_mask_cloud <- paste0(repo_data,"/",image_l1_name,"/GRANULE/",path_mask_1,"/FMASK_DATA")
+  print(path_mask_cloud)
   setwd(path_mask_cloud)
 
   Fmask_20m <- raster(list.files(pattern=glob2rx('*_Fmask.tif')))
@@ -75,13 +76,16 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   path_bands_1 <-dir(path=paste0(image_l2_name,"/GRANULE"),full.names = FALSE,recursive = FALSE,pattern = "L2A_*")
   path_bands_20m <- "IMG_DATA/R20m"
   path_bands_def_20m <- paste0(repo_data,"/",image_l2_name,"/GRANULE/",path_bands_1,"/",path_bands_20m)
-  setwd(path_bands_def_20m) 
+  setwd(path_bands_def_20m)
+  print(path_bands_def_20m)
+  print(getwd())
   
   ### Read INPUT BANDS
   B3_20m <- raster(list.files(pattern=glob2rx('*B03_20m.jp2')))
   B4_20m <- raster(list.files(pattern=glob2rx('*B04_20m.jp2')))
   B11_20m <- raster(list.files(pattern=glob2rx("*B11_20m.jp2")))
-  gdal_translate("*SCL_20m.jp2","L2A_SCL_20m.tif")
+  #gdal_translate("*SCL_20m.jp2","L2A_SCL_20m.tif")
+  gdal_translate(list.files(pattern=glob2rx("*SCL_20m.jp2"))[1],"L2A_SCL_20m.tif")
   SCL_20m <- raster(list.files(pattern=glob2rx('L2A_SCL_20m.tif')))
   
   ### Crop on AOI if presents

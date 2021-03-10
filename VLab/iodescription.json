@@ -1,26 +1,48 @@
 {
   "inputs": [
     {
-      "id": "InData",
+      "id": "InDataSentinel",
+      "inputType": "array",
+      "valueType": "value",
+      "description": "Sentinel Data",
+      "name": "Satellite Data",
+      "obligation": true,
+      "hasDefault": false,
+      "valueSchema": "sat_product",
+      "target": "data/sentinel/"
+	},
+    {
+      "id": "InDataAOI",
       "inputType": "individual",
       "valueType": "value",
-      "description": "URL to download the zip archive containing the S2 L1C with FMASK and L2A, the DEM and eventually an AOI",
-      "name": "input",
+      "description": "Area of Interest",
+      "name": "Area of Interest",
+      "obligation": false,
+      "hasDefault": false,
+      "valueSchema": "url",
+      "target": "data/aoi.zip"
+    },
+    {
+      "id": "InDataDEM",
+      "inputType": "individual",
+      "valueType": "value",
+      "description": "DEM",
+      "name": "DEM",
       "obligation": true,
       "hasDefault": false,
       "valueSchema": "url",
-      "target": "/01_data/input.zip"
-	}
+      "target": "data/DEM.tif"
+    }
   ],
   "outputs": [
     {
-      "id": "Snow&Cloud",
-      "outputType": "individual",
+      "id": "SnowCloud",
+      "outputType": "array",
       "valueType": "value",
       "description": "Snow cover",
       "name": "OutData",
       "valueSchema": "url",
-      "target": "/01_data/output/Snow&Cloud.tif"
+      "target": "data/output/"
  }
   ]
 }
