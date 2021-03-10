@@ -15,6 +15,3 @@ COPY /02_code/snowCover.R /02_code/snowCover.R
 
 ## install R-packages
 RUN Rscript /02_code/install_packages.R
-
-## run the script
-CMD Rscript /02_code/snowCover.R
