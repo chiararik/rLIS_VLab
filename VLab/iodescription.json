@@ -2,7 +2,7 @@
   "inputs": [
     {
       "id": "InDataSentinel",
-      "inputType": "array",
+      "inputType": "individual",
       "valueType": "value",
       "description": "Sentinel Data",
       "name": "Satellite Data",
@@ -13,7 +13,7 @@
 	},
 	{
       "id": "InDataFmask",
-      "inputType": "array",
+      "inputType": "individual",
       "valueType": "value",
       "description": "Fmask Data",
       "name": "Fmask Data",

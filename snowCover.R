@@ -41,7 +41,7 @@ unzip("fmask.zip", files = NULL, list = FALSE, overwrite = TRUE,
 
 ####### Read Sentinel-2 L2A images
 
-elenco_file_zip <- list.files(pattern=glob2rx('S2*_MSIL2A*.zip'))
+elenco_file_zip <- list.files(pattern=glob2rx('S2*.zip'))
 num_zip <- length(elenco_file_zip)
 
 for (i in elenco_file_zip[1:num_zip]){
