@@ -8,7 +8,8 @@ print("Starting Workflow")
 
 ##### Input files:
 
-# Sentinel-2 L2A with FMASK output (mandatory)
+# Sentinel-2 L2A (mandatory)
+# FMASK output (mandatory)
 # DEM (mandatory)
 # AOI (optional)
 
@@ -32,6 +33,11 @@ if (aoizip == TRUE){
 }
 
 dem <- raster("DEM.tif")
+
+####### Unzip FMASK
+
+unzip("fmask.zip", files = NULL, list = FALSE, overwrite = TRUE,
+      junkpaths = FALSE, exdir = ".", unzip = "internal", setTimes = FALSE)
 
 ####### Read Sentinel-2 L2A images
 
@@ -66,20 +72,14 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   end_name_file<-substr(x,12,60)
   
   # Find Fmask 
-  image_l2_name <- paste0(sensore,"_MSIL2A_",end_name_file,".SAFE",collapse = NULL, recycle0 = FALSE)
-  path_bands_1 <- dir(path=paste0(repo_data,"/",image_l2_name,"/GRANULE"),full.names = FALSE,recursive = FALSE,pattern = "L2A_*")
-  path_mask_cloud <- paste0(repo_data,"/",image_l2_name,"/GRANULE/",path_bands_1,"/FMASK_DATA")
-  print(path_mask_cloud)
-  setwd(path_mask_cloud)
-  
-  Fmask_20m <- raster(list.files(pattern=glob2rx('*_Fmask.tif')))
+  Fmask_20m <- raster(list.files(pattern=glob2rx(paste0('*',date,'*_Fmask.tif'))))
   if (aoifile == TRUE) {
     Fmask_20m <- crop(Fmask_20m, aoi)
   }
   
-  setwd(repo_data)
-  
   path_bands_20m <- "IMG_DATA/R20m"
+  image_l2_name <- paste0(sensore,"_MSIL2A_",end_name_file,".SAFE",collapse = NULL, recycle0 = FALSE)
+  path_bands_1 <- dir(path=paste0(repo_data,"/",image_l2_name,"/GRANULE"),full.names = FALSE,recursive = FALSE,pattern = "L2A_*")
   path_bands_def_20m <- paste0(repo_data,"/",image_l2_name,"/GRANULE/",path_bands_1,"/",path_bands_20m)
   setwd(path_bands_def_20m)
   print(path_bands_def_20m)

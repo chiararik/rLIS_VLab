@@ -8,14 +8,25 @@
       "name": "Satellite Data",
       "obligation": true,
       "hasDefault": false,
-      "valueSchema": "sat_product",
-      "target": "data/sentinel/"
+      "valueSchema": "url",
+      "target": "data/S2.zip"
+	},
+	{
+      "id": "InDataFmask",
+      "inputType": "array",
+      "valueType": "value",
+      "description": "Fmask Data",
+      "name": "Fmask Data",
+      "obligation": true,
+      "hasDefault": false,
+      "valueSchema": "url",
+      "target": "data/fmask.zip"
 	},
     {
       "id": "InDataAOI",
       "inputType": "individual",
       "valueType": "value",
-      "description": "Area of Interest",
+      "description": "Shapefile of Area of Interest (in zip format)",
       "name": "Area of Interest",
       "obligation": false,
       "hasDefault": false,
