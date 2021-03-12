@@ -8,7 +8,7 @@
       "name": "Satellite Data",
       "obligation": true,
       "hasDefault": false,
-      "valueSchema": "url",
+      "valueSchema": "sat_product",
       "target": "data/S2.zip"
 	},
 	{
