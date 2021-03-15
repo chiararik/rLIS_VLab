@@ -92,9 +92,11 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   
   ### Read INPUT BANDS
   B3_20m <- raster(list.files(pattern=glob2rx('*B03*.jp2')))
+  print("raster bands ok b3")
   B4_20m <- raster(list.files(pattern=glob2rx('*B04*.jp2')))
+  print("raster bands ok b4")
   B11_20m <- raster(list.files(pattern=glob2rx("*B11*.jp2")))
-  print("raster bands ok")
+  print("raster bands ok b11")
   #gdal_translate("*SCL_20m.jp2","L2A_SCL_20m.tif")
   gdal_translate(list.files(pattern=glob2rx("*SCL*.jp2"))[1],"L2A_SCL_20m.tif")
   SCL_20m <- raster(list.files(pattern=glob2rx('L2A_SCL_20m.tif')))
