@@ -100,10 +100,11 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   B11_20m <- raster(list.files(pattern=glob2rx("*B11*.jp2")))
   print("raster bands ok b11")
   #gdal_translate("*SCL_20m.jp2","L2A_SCL_20m.tif")
-  gdal_translate(list.files(pattern=glob2rx("*SCL*.jp2"))[1],"L2A_SCL_20m.tif")
+  #gdal_translate(list.files(pattern=glob2rx("*SCL*.jp2"))[1],"L2A_SCL_20m.tif")
   print(list.files(pattern=glob2rx("*")))
   print("gdal translate ok")
-  SCL_20m <- raster(list.files(pattern=glob2rx('L2A_SCL_20m.tif')))
+  #SCL_20m <- raster(list.files(pattern=glob2rx('L2A_SCL_20m.tif')))
+  SCL_20m <- raster(list.files(pattern=glob2rx("*SCL*.jp2")))
   print("raster scl20 ok")
   
   ### Crop on AOI if presents
