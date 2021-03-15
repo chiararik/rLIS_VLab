@@ -32,12 +32,14 @@ if (aoizip == TRUE){
   aoi <- shapefile("aoi.shp")
 }
 
+print("aoi ok")
 dem <- raster("DEM.tif")
-
+print("dem ok")
 ####### Unzip FMASK
 
 unzip("fmask.zip", files = NULL, list = FALSE, overwrite = TRUE,
       junkpaths = FALSE, exdir = ".", unzip = "internal", setTimes = FALSE)
+print("fmask ok")
 
 ####### Read Sentinel-2 L2A images
 
@@ -46,6 +48,7 @@ num_zip <- length(elenco_file_zip)
 
 for (i in elenco_file_zip[1:num_zip]){
   s2_zip = i
+  print(s2_zip)
   unzip(s2_zip, files = NULL, list = FALSE, overwrite = TRUE,
         junkpaths = FALSE, exdir = ".", unzip = "internal", setTimes = FALSE)
 }
@@ -53,7 +56,7 @@ for (i in elenco_file_zip[1:num_zip]){
 elenco_file_SAFE <- list.files(pattern=glob2rx('S2*_MSIL2A*.SAFE'))
 
 num_SAFE=length(elenco_file_SAFE)
-
+print(num_SAFE)
 n <- 1
 
 for (i in elenco_file_SAFE[1:num_SAFE]){
@@ -73,6 +76,7 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   
   # Find Fmask 
   Fmask_20m <- raster(list.files(pattern=glob2rx(paste0('*',date,'*_Fmask.tif'))))
+  print("raster fmask ok")
   if (aoifile == TRUE) {
     Fmask_20m <- crop(Fmask_20m, aoi)
   }
@@ -89,9 +93,11 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   B3_20m <- raster(list.files(pattern=glob2rx('*B03_20m.jp2')))
   B4_20m <- raster(list.files(pattern=glob2rx('*B04_20m.jp2')))
   B11_20m <- raster(list.files(pattern=glob2rx("*B11_20m.jp2")))
+  print("raster bands ok")
   #gdal_translate("*SCL_20m.jp2","L2A_SCL_20m.tif")
   gdal_translate(list.files(pattern=glob2rx("*SCL_20m.jp2"))[1],"L2A_SCL_20m.tif")
   SCL_20m <- raster(list.files(pattern=glob2rx('L2A_SCL_20m.tif')))
+  print("raster scl20 ok")
   
   ### Crop on AOI if presents
   
