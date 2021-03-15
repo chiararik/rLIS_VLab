@@ -85,9 +85,10 @@ for (i in elenco_file_SAFE[1:num_SAFE]){
   image_l2_name <- paste0(sensore,"_MSIL2A_",end_name_file,".SAFE",collapse = NULL, recycle0 = FALSE)
   path_bands_1 <- dir(path=paste0(repo_data,"/",image_l2_name,"/GRANULE"),full.names = FALSE,recursive = FALSE,pattern = "L2A_*")
   path_bands_def_20m <- paste0(repo_data,"/",image_l2_name,"/GRANULE/",path_bands_1,"/",path_bands_20m)
-  setwd(path_bands_def_20m)
   print(path_bands_def_20m)
   print(getwd())
+  setwd(path_bands_def_20m)
+
   
   ### Read INPUT BANDS
   B3_20m <- raster(list.files(pattern=glob2rx('*B03_20m.jp2')))
