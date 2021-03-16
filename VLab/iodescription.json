@@ -10,8 +10,8 @@
       "hasDefault": false,
       "valueSchema": "sat_product",
       "target": "data/S2.zip"
-	},
-	{
+    },
+    {
       "id": "InDataFmask",
       "inputType": "individual",
       "valueType": "value",
@@ -20,8 +20,8 @@
       "obligation": true,
       "hasDefault": false,
       "valueSchema": "url",
-      "target": "data/fmask.zip"
-	},
+      "target": "data/fmask.tif"
+    },
     {
       "id": "InDataAOI",
       "inputType": "individual",
@@ -48,12 +48,12 @@
   "outputs": [
     {
       "id": "SnowCloud",
-      "outputType": "array",
+      "outputType": "individual",
       "valueType": "value",
       "description": "Snow cover",
       "name": "OutData",
       "valueSchema": "url",
-      "target": "data/output/"
- }
+      "target": "data/output/SnowCloud_mask_20m.tif"
+    }
   ]
 }
