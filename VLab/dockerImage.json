@@ -1,7 +1,7 @@
 {
   "image": "chiararik/snowcoverprocessor",
   "resources": {
-    "memory_mb": "25000",
+    "memory_mb": "5000",
     "cpu_units": ""
  },
   "container": {
