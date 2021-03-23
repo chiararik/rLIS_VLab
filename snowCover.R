@@ -20,6 +20,9 @@ print(repo)
 repo_data <- paste0(repo,"/data")
 setwd(repo_data)
 
+repo_data <- ("D:/TEST")
+setwd(repo_data) 
+
 ###### Read AOI (if present) and DEM
 
 aoizip <- file.exists("aoi.zip")
@@ -54,9 +57,6 @@ num_SAFE=length(elenco_file_SAFE)
 print(num_SAFE)
 
 
-
-
-
 x <- elenco_file_SAFE[1]
 
 sensore <- substr(x,1,3)
@@ -71,7 +71,7 @@ n_code <- substr(x,28,32)
 end_name_file<-substr(x,12,60)
 
 # Find Fmask
-Fmask_20m <- raster(list.files(pattern=glob2rx('*fmask*.tif')))
+Fmask_20m <- raster(list.files(pattern=glob2rx('*Fmask*.tif')))
 print("raster fmask ok")
 if (aoifile == TRUE) {
   Fmask_20m <- crop(Fmask_20m, aoi)
@@ -87,7 +87,6 @@ setwd(path_bands_def_20m)
 print(getwd())
 print(list.files(pattern=glob2rx("*")))
 
-
 ### Read INPUT BANDS
 B3_20m <- raster(list.files(pattern=glob2rx('*B03*.jp2')))
 print("raster bands ok b3")
@@ -98,10 +97,10 @@ print("raster bands ok b11")
 #gdal_translate("*SCL_20m.jp2","L2A_SCL_20m.tif")
 #gdal_translate(list.files(pattern=glob2rx("*SCL*.jp2"))[1],"L2A_SCL_20m.tif")
 print(list.files(pattern=glob2rx("*")))
-print("gdal translate ok")
+#print("gdal translate ok")
 #SCL_20m <- raster(list.files(pattern=glob2rx('L2A_SCL_20m.tif')))
-SCL_20m <- raster(list.files(pattern=glob2rx("*SCL*.jp2")))
-print("raster scl20 ok")
+#SCL_20m <- raster(list.files(pattern=glob2rx("*SCL*.jp2")))
+#print("raster scl20 ok")
 
 ### Crop on AOI if presents
 
@@ -112,18 +111,13 @@ if (aoifile == TRUE){
   SCL_20m <- crop(SCL_20m, aoi)
 }
 
-###### Mask no data from SCL
-
-maskSCL_crop_compl_20m <- (SCL_20m != 0)
-
-B3_crop_20m_masking_SCL <- mask(B3_20m, maskSCL_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
-B4_crop_20m_masking_SCL <- mask(B4_20m, maskSCL_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
-B11_crop_20m_masking_SCL <- mask(B11_20m, maskSCL_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
-
 ###### Fmask no data masking
 
 maskFmask_crop_compl_20m <- (Fmask_20m != 255)
-Fmask_crop_20m_masking_SCL <- mask(Fmask_20m,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+Fmask_crop_20m_masking <- mask(Fmask_20m,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+B3_crop_20m_masking <- mask(B3_20m, maskFmask_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
+B4_crop_20m_masking <- mask(B4_20m, maskFmask_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
+B11_crop_20m_masking <- mask(B11_20m, maskFmask_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
 
 ##################### Pre-processing DEM
 
@@ -146,7 +140,7 @@ if (extent(dem) != extent(B3_20m)){
 
 ###### No data masking from DEM
 
-dem_masking_SCL <- mask(dem,maskSCL_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+dem_masking <- mask(dem,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
 
 ############################################### Set output wd
 
@@ -157,9 +151,9 @@ setwd(output_folder)
 
 ###############################################
 
-B3_crop_20m_masking_SCL_FLOAT = B3_crop_20m_masking_SCL/10000
-B4_crop_20m_masking_SCL_FLOAT = B4_crop_20m_masking_SCL/10000
-B11_crop_20m_masking_SCL_FLOAT = B11_crop_20m_masking_SCL/10000
+B3_crop_20m_masking_FLOAT = B3_crop_20m_masking/10000
+B4_crop_20m_masking_FLOAT = B4_crop_20m_masking/10000
+B11_crop_20m_masking_FLOAT = B11_crop_20m_masking/10000
 
 print("Snow cover detection starting")
 
@@ -182,37 +176,37 @@ s2 <- 0.250
 
 ### NDSI at 20m
 
-NDSI_crop_20m <- ((B3_crop_20m_masking_SCL_FLOAT - B11_crop_20m_masking_SCL_FLOAT)/(B3_crop_20m_masking_SCL_FLOAT + B11_crop_20m_masking_SCL_FLOAT))*10000
+NDSI_crop_20m <- ((B3_crop_20m_masking_FLOAT - B11_crop_20m_masking_FLOAT)/(B3_crop_20m_masking_FLOAT + B11_crop_20m_masking_FLOAT))*10000
 NDSI_crop_20m[NDSI_crop_20m < -10000] = -10000
 NDSI_crop_20m[NDSI_crop_20m > 10000] = 10000
 
 ### CLOUD PASS 1
-cloud_pass0 <- Fmask_crop_20m_masking_SCL
+cloud_pass0 <- Fmask_crop_20m_masking
 
 cloud_pass0[cloud_pass0 == 1] <- 0
 cloud_pass0[cloud_pass0 == 4] <- 1
 cloud_pass0[cloud_pass0 == 2] <- 1
 cloud_pass0[cloud_pass0 != 1] <- 0
 
-cloud_pass0_mask <- mask(cloud_pass0,maskSCL_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+cloud_pass0_mask <- mask(cloud_pass0,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
 
 # B4 noise reduction
-B4_crop_20m_masking_SCL_FLOAT_filtered <- focal(B4_crop_20m_masking_SCL_FLOAT, w=matrix(1/9, nc=3, nr=3), fun=median, na.rm=TRUE, pad=TRUE, padValue=NA)
+B4_crop_20m_masking_FLOAT_filtered <- focal(B4_crop_20m_masking_SCL_FLOAT, w=matrix(1, nc=3, nr=3), fun=median, na.rm=TRUE, pad=TRUE, padValue=NA)
 
 # Dark-Cloud pixel
-dark_clouds <- overlay(Fmask_crop_20m_masking_SCL,
-                       B4_crop_20m_masking_SCL_FLOAT_filtered,
+dark_clouds <- overlay(Fmask_crop_20m_masking,
+                       B4_crop_20m_masking_FLOAT_filtered,
                        fun = function(x,y) {return(x == 4 & y < rB4_darkcloud)})
 
 cloud_pass1 <- cloud_pass0_mask - dark_clouds
 cloud_pass1[is.na(cloud_pass1)] <- 0
-cloud_pass1_mask <- mask(cloud_pass1,maskSCL_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+cloud_pass1_mask <- mask(cloud_pass1,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
 
 #### SNOW PASS 1
 
 snow_pass1 <- overlay(NDSI_crop_20m,
-                      B4_crop_20m_masking_SCL_FLOAT,
-                      B11_crop_20m_masking_SCL_FLOAT,
+                      B4_crop_20m_masking_FLOAT,
+                      B11_crop_20m_masking_FLOAT,
                       cloud_pass1_mask,
                       fun=function(a,b,c,d) {return(a>n1 & b>r1 & c<s1 & d != 1)})
 
@@ -225,164 +219,224 @@ total_snow_fraction <- total_snow_cells*100/total_cells
 
 
 if (total_snow_fraction > fsnow_total_lim){
-
+  
   ### SNOWLINE ELEVATION
-
+  
   bh <- 100
-  zmax <- round(maxValue(dem_masking_SCL),-2)
+  zmax <- round(maxValue(dem_masking),-2)
   zmin <- zmax - bh
-
+  
   # calculates cloud-free altitude band extension
-  dem_band <- calc(dem_masking_SCL, fun = function(x) {return(x > zmin & x < zmax)})
+  dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
   dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
-
+  
   cloud_band <- overlay(cloud_pass0_mask,
-                        dem_masking_SCL,
+                        dem_masking,
                         fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-
+  
   cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
   dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
-
+  
   while (cloudy_band_pixel == dem_band_pixel & dem_band_pixel > 0) {
-
+    
     zmax <- zmax - bh
     zmin <- zmin - bh
-
-    dem_band <- calc(dem_masking_SCL, fun = function(x) {return(x > zmin & x < zmax)})
+    
+    dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
     dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
-
+    
     cloud_band <- overlay(cloud_pass0_mask,
-                          dem_masking_SCL,
+                          dem_masking,
                           fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-
+    
     cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
     dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
-
+    
   }
-
+  
   # calculate snow extension x altitude band
   snow_band <- overlay(snow_pass1,
-                       dem_masking_SCL,
+                       dem_masking,
                        fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-
+  
   snow_band_pixel <- sum(snow_band[!is.na(snow_band)]==1)
-
+  
   # calculates the snow fraction x altitude band
   band_snow_fraction <- snow_band_pixel/dem_band_free_pixel*100
-
+  
   # find the lowest altitudinal band for which the snow cover fraction is > 0.1
   while (band_snow_fraction > fsnow_lim & snow_band_pixel > 0){
-
+    
     zmax <- zmax - bh
     zmin <- zmin - bh
-
+    
     snow_band <- overlay(snow_pass1,
-                         dem_masking_SCL,
+                         dem_masking,
                          fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-
+    
     dem_band <- calc(dem, fun = function(x) {return(x > zmin & x < zmax)})
-
+    
     cloud_band <- overlay(cloud_pass0_mask,
-                          dem_masking_SCL,
+                          dem_masking,
                           fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-
+    
     dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
     cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
     dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
-
+    
     while (cloudy_band_pixel == dem_band_pixel & dem_band_pixel > 0) {
-
+      
       zmax <- zmax - bh
       zmin <- zmin - bh
-
-      dem_band <- calc(dem_masking_SCL, fun = function(x) {return(x > zmin & x < zmax)})
+      
+      dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
       dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
-
+      
       cloud_band <- overlay(cloud_pass0_mask,
-                            dem_masking_SCL,
+                            dem_masking,
                             fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-
+      
       cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
       dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
-
+      
     }
-
+    
     snow_band_pixel <- sum(snow_band[!is.na(snow_band)]==1)
     band_snow_fraction <- snow_band_pixel/dem_band_free_pixel*100
-
+    
   }
-
+  
   # define lower snow limit as two bands lower than the one previously found
   zs <- zmin - (2*bh)
-
+  
   ### SNOW PASS 2
   snow_pass2 <- overlay(NDSI_crop_20m,
-                        B4_crop_20m_masking_SCL_FLOAT,
-                        dem_masking_SCL,
-                        B11_crop_20m_masking_SCL_FLOAT,
+                        B4_crop_20m_masking_FLOAT,
+                        dem_masking,
+                        B11_crop_20m_masking_FLOAT,
                         fun=function(a,b,c,d) {return(a>n2 & b>r2 & c>zs & d<s2)})
-
+  
   ### CLOUD PASS2
   cloud_pass2 <- overlay(snow_pass2,
                          dark_clouds,
-                         B4_crop_20m_masking_SCL_FLOAT,
+                         B4_crop_20m_masking_FLOAT,
                          fun=function(x,y,z) {return(x != 1 & y == 1 & z > rB4_backtocloud)})
-
+  
   cloud_pass2[is.na(cloud_pass2)] <- 0
-  cloud_pass2_mask <- mask(cloud_pass2,maskSCL_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
-
+  cloud_pass2_mask <- mask(cloud_pass2,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+  
   ###CLOUD FINAL
   cloud_final <- overlay(cloud_pass1_mask,
                          cloud_pass2_mask,
                          fun = function(x, y) {x == 1 | y == 1})
-
-
+  
+  
   ############################# FINAL OUTPUT CREATION
-
-  # CREATE RASTER FROM SNOW PASS2 AND CLOUD FINAL -> WITH 4 values: 100 SNOW; 0 NO-SNOW; 205 CLOUD; 255 NO DATA
+  
+  # CREATE RASTER FROM SNOW PASS2 AND CLOUD FINAL -> WITH 4 values: 100 SNOW; 0 NO-SNOW; 205 CLOUD; 254 NO DATA
   snow_pass2[snow_pass2 == 1] <- 100
   cloud_final[cloud_final == 1] <- 205
-
+  
   output_SnowCloud_20m <- sum(snow_pass2,cloud_final)
   output_SnowCloud_20m[output_SnowCloud_20m == 305] <- 100
   output_SnowCloud_20m[is.na(output_SnowCloud_20m)] <- 254
-
+  
+  ### Remove small patches
+  land <- calc(output_SnowCloud_20m, fun=function(x){x == 0})
+  patches <- clump(land,directions=4, gaps=TRUE)
+  # get frequency table    
+  f<-freq(patches)
+  # save frequency table as data frame
+  f<-as.data.frame(f)
+  # which rows of the data.frame are only represented by clumps under 4 pixels?
+  str(which(f$count <= 5))
+  # which values do these correspond to?
+  str(f$value[which(f$count <= 5)])
+  # put these into a vector of clump ID's to be removed
+  excludeID <- f$value[which(f$count <= 5)]
+  # assign NA to all clumps whose IDs are found in excludeID
+  patches[patches %in% excludeID] <- 0
+  # reclassify: 0 are pixels to remove and all the rest is 1
+  patches[patches != 0] <- 1
+  patches[is.na(patches)] <- 1
+  # produce mask
+  patches_mask <- (patches != 0)
+  output_SnowCloud_20m_gap <- mask(output_SnowCloud_20m,patches_mask,inverse=TRUE,maskvalue=1,updatevalue=NA)
+  
+  # replace only NA values
+  output_SnowCloud_20m_gap_filled <- focal(output_SnowCloud_20m_gap,
+                                           w=matrix(1,nrow=7,ncol=7),
+                                           fun=median,
+                                           na.rm=TRUE,
+                                           NAonly=TRUE,
+                                           pad=TRUE)
+  
   output_SnowCloud_20m_name <- paste0("SnowCloud_mask_20m.tif")
-  writeRaster(output_SnowCloud_20m, output_SnowCloud_20m_name, datatype='INT2S', format = "GTiff", overwrite=TRUE)
-
+  writeRaster(output_SnowCloud_20m_gap_filled, output_SnowCloud_20m_name, datatype='INT2S', format = "GTiff", overwrite=TRUE)
+  
 } else {
-
+  
   ############################# FINAL OUTPUT CREATION
-
+  
   cloud_pass3 <- overlay(snow_pass1,
                          dark_clouds,
                          B4_crop_20m_masking_SCL_FLOAT,
                          fun = function(x,y,z) {return(x != 1 & y == 1 & z > rB4_backtocloud)})
-
+  
   cloud_pass3[is.na(cloud_pass3)] <- 0
   cloud_pass3_mask <- mask(cloud_pass3,maskSCL_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
-
+  
   cloud_final <- overlay(cloud_pass1_mask,
                          cloud_pass3_mask,
                          fun = function(x, y) {return(x == 1 | y == 1)})
-
-
-  # CREATE RASTER FROM SNOW PASS2 AND CLOUD FINAL -> WITH 4 values: 100 SNOW; 0 NO-SNOW; 205 CLOUD; 255 NO DATA
+  
+  
+  # CREATE RASTER FROM SNOW PASS2 AND CLOUD FINAL -> WITH 4 values: 100 SNOW; 0 NO-SNOW; 205 CLOUD; 254 NO DATA
   snow_pass1[snow_pass1 == 1] <- 100
   cloud_final[cloud_final == 1] <- 205
-
+  
   output_SnowCloud_20m <- sum(snow_pass1,cloud_final)
   output_SnowCloud_20m[output_SnowCloud_20m == 305] <- 100
   output_SnowCloud_20m[is.na(output_SnowCloud_20m)] <- 254
-
+  
+  ### Remove small patches
+  land <- calc(output_SnowCloud_20m, fun=function(x){x == 0})
+  patches <- clump(land,directions=4, gaps=TRUE)
+  # get frequency table    
+  f<-freq(patches)
+  # save frequency table as data frame
+  f<-as.data.frame(f)
+  # which rows of the data.frame are only represented by clumps under 4 pixels?
+  str(which(f$count <= 5))
+  # which values do these correspond to?
+  str(f$value[which(f$count <= 5)])
+  # put these into a vector of clump ID's to be removed
+  excludeID <- f$value[which(f$count <= 5)]
+  # assign NA to all clumps whose IDs are found in excludeID
+  patches[patches %in% excludeID] <- 0
+  # reclassify: 0 are pixels to remove and all the rest is 1
+  patches[patches != 0] <- 1
+  patches[is.na(patches)] <- 1
+  # produce mask
+  patches_mask <- (patches != 0)
+  output_SnowCloud_20m_gap <- mask(output_SnowCloud_20m,patches_mask,inverse=TRUE,maskvalue=1,updatevalue=NA)
+  
+  # replace only NA values
+  output_SnowCloud_20m_gap_filled <- focal(output_SnowCloud_20m_gap,
+                                           w=matrix(1,nrow=7,ncol=7),
+                                           fun=median,
+                                           na.rm=TRUE,
+                                           NAonly=TRUE,
+                                           pad=TRUE)
+  
   output_SnowCloud_20m_name <- paste0("SnowCloud_mask_20m.tif")
-  writeRaster(output_SnowCloud_20m, output_SnowCloud_20m_name, datatype='INT2S', format = "GTiff", overwrite=TRUE)
-
+  writeRaster(output_SnowCloud_20m_gap_filled, output_SnowCloud_20m_name, datatype='INT2S', format = "GTiff", overwrite=TRUE)
+  
 }
 
 ############################################################## Snow Cover Processor - END
 
-print("Processing of finished")
+print("Processing finished")
 
 
 
@@ -398,7 +452,7 @@ setwd(dir_base)
 ############
 
 setwd(repo_data)
-  
+
 
 
 print("Workflow Finished")
