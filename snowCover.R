@@ -20,9 +20,6 @@ print(repo)
 repo_data <- paste0(repo,"/data")
 setwd(repo_data)
 
-repo_data <- ("D:/TEST")
-setwd(repo_data) 
-
 ###### Read AOI (if present) and DEM
 
 aoizip <- file.exists("aoi.zip")
