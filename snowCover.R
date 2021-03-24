@@ -33,7 +33,7 @@ if (aoizip == TRUE){
 }
 
 print("aoi ok")
-dem <- raster("DEM.tif")
+dem <- setMinMax(raster("DEM.tif"))
 print("dem ok")
 
 ####### Read Sentinel-2 L2A images
@@ -91,13 +91,9 @@ B4_20m <- raster(list.files(pattern=glob2rx('*B04*.jp2')))
 print("raster bands ok b4")
 B11_20m <- raster(list.files(pattern=glob2rx("*B11*.jp2")))
 print("raster bands ok b11")
-#gdal_translate("*SCL_20m.jp2","L2A_SCL_20m.tif")
-#gdal_translate(list.files(pattern=glob2rx("*SCL*.jp2"))[1],"L2A_SCL_20m.tif")
 print(list.files(pattern=glob2rx("*")))
-#print("gdal translate ok")
-#SCL_20m <- raster(list.files(pattern=glob2rx('L2A_SCL_20m.tif')))
-#SCL_20m <- raster(list.files(pattern=glob2rx("*SCL*.jp2")))
-#print("raster scl20 ok")
+SCL_20m <- raster(list.files(pattern=glob2rx("*SCL*.jp2")))
+print("raster scl20 ok")
 
 ### Crop on AOI if presents
 
@@ -107,14 +103,6 @@ if (aoifile == TRUE){
   B11_20m <- crop(B11_20m, aoi)
   SCL_20m <- crop(SCL_20m, aoi)
 }
-
-###### Fmask no data masking
-
-maskFmask_crop_compl_20m <- (Fmask_20m != 255)
-Fmask_crop_20m_masking <- mask(Fmask_20m,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
-B3_crop_20m_masking <- mask(B3_20m, maskFmask_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
-B4_crop_20m_masking <- mask(B4_20m, maskFmask_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
-B11_crop_20m_masking <- mask(B11_20m, maskFmask_crop_compl_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
 
 ##################### Pre-processing DEM
 
@@ -135,9 +123,39 @@ if (extent(dem) != extent(B3_20m)){
   dem <- setExtent(dem, extent(B3_20m), keepres=FALSE)
 }
 
-###### No data masking from DEM
+###### No data masking
+partial <- FALSE
 
-dem_masking <- mask(dem,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+total_NA_cells <- sum(SCL_crop_20m [!is.na(SCL_crop_20m)] == 0)
+total_raster_cells <- ncell(SCL_crop_20m)
+total_NA_fraction <- round(total_NA_cells*100/total_raster_cells,0)
+
+if (total_NA_fraction > 25){
+  
+  partial <- TRUE
+  
+  nd_20m <- calc(SCL_20m, fun=function(x){x == 0})
+  #nd_20m <- SCL_20m[SCL_20m == 0]
+  nodata_20m <- clump(nd_20m,directions=4, gaps=TRUE)
+  mask_crop_nodata_20m <- (nodata_20m != 1)
+  
+  B3_20m <- mask(B3_20m, mask_crop_nodata_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
+  B4_20m <- mask(B4_20m, mask_crop_nodata_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
+  B11_20m <- mask(B11_20m, mask_crop_nodata_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
+  
+  dem_masking <- mask(dem,mask_crop_nodata_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+}
+
+if (partial == FALSE) {
+  dem_masking <- dem
+}
+
+###### Fmask No data masking
+
+if (partial == TRUE){
+  maskFmask_crop_compl_20m <- (Fmask_20m != 255)
+  Fmask_20m <- mask(Fmask_20m,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+}
 
 ############################################### Set output wd
 
@@ -148,9 +166,9 @@ setwd(output_folder)
 
 ###############################################
 
-B3_crop_20m_masking_FLOAT = B3_crop_20m_masking/10000
-B4_crop_20m_masking_FLOAT = B4_crop_20m_masking/10000
-B11_crop_20m_masking_FLOAT = B11_crop_20m_masking/10000
+B3_20m_FLOAT = B3_20m/10000
+B4_20m_FLOAT = B4_20m/10000
+B11_20m_FLOAT = B11_20m/10000
 
 print("Snow cover detection starting")
 
@@ -173,9 +191,9 @@ s2 <- 0.250
 
 ### NDSI at 20m
 
-NDSI_crop_20m <- ((B3_crop_20m_masking_FLOAT - B11_crop_20m_masking_FLOAT)/(B3_crop_20m_masking_FLOAT + B11_crop_20m_masking_FLOAT))*10000
-NDSI_crop_20m[NDSI_crop_20m < -10000] = -10000
-NDSI_crop_20m[NDSI_crop_20m > 10000] = 10000
+NDSI_20m <- ((B3_20m_FLOAT - B11_20m_FLOAT)/(B3_20m_FLOAT + B11_20m_FLOAT))*10000
+NDSI_20m[NDSI_crop_20m < -10000] = -10000
+NDSI_20m[NDSI_crop_20m > 10000] = 10000
 
 ### CLOUD PASS 1
 cloud_pass0 <- Fmask_crop_20m_masking
@@ -185,26 +203,32 @@ cloud_pass0[cloud_pass0 == 4] <- 1
 cloud_pass0[cloud_pass0 == 2] <- 1
 cloud_pass0[cloud_pass0 != 1] <- 0
 
-cloud_pass0_mask <- mask(cloud_pass0,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+if (partial == TRUE){
+ cloud_pass0 <- mask(cloud_pass0,mask_crop_nodata_20m,inverse=TRUE,maskvalue=1,updatevalue=NA) 
+}
+
 
 # B4 noise reduction
-B4_crop_20m_masking_FLOAT_filtered <- focal(B4_crop_20m_masking_SCL_FLOAT, w=matrix(1, nc=3, nr=3), fun=median, na.rm=TRUE, pad=TRUE, padValue=NA)
+B4_20m_FLOAT_filtered <- focal(B4_20m_FLOAT, w=matrix(1, nc=3, nr=3), fun=median, na.rm=TRUE, pad=TRUE, padValue=NA)
 
 # Dark-Cloud pixel
-dark_clouds <- overlay(Fmask_crop_20m_masking,
-                       B4_crop_20m_masking_FLOAT_filtered,
+dark_clouds <- overlay(Fmask_20m,
+                       B4_20m_FLOAT_filtered,
                        fun = function(x,y) {return(x == 4 & y < rB4_darkcloud)})
 
-cloud_pass1 <- cloud_pass0_mask - dark_clouds
+cloud_pass1 <- cloud_pass0 - dark_clouds
 cloud_pass1[is.na(cloud_pass1)] <- 0
-cloud_pass1_mask <- mask(cloud_pass1,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+
+if (partial == TRUE){
+ cloud_pass1 <- mask(cloud_pass1,mask_crop_nodata_20m,inverse=TRUE,maskvalue=1,updatevalue=NA) 
+}
 
 #### SNOW PASS 1
 
-snow_pass1 <- overlay(NDSI_crop_20m,
-                      B4_crop_20m_masking_FLOAT,
-                      B11_crop_20m_masking_FLOAT,
-                      cloud_pass1_mask,
+snow_pass1 <- overlay(NDSI_20m,
+                      B4_20m_FLOAT,
+                      B11_20m_FLOAT,
+                      cloud_pass1,
                       fun=function(a,b,c,d) {return(a>n1 & b>r1 & c<s1 & d != 1)})
 
 ### TEST "ENOUGH SNOW?"
@@ -227,7 +251,7 @@ if (total_snow_fraction > fsnow_total_lim){
   dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
   dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
   
-  cloud_band <- overlay(cloud_pass0_mask,
+  cloud_band <- overlay(cloud_pass0,
                         dem_masking,
                         fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
   
@@ -242,7 +266,7 @@ if (total_snow_fraction > fsnow_total_lim){
     dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
     dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
     
-    cloud_band <- overlay(cloud_pass0_mask,
+    cloud_band <- overlay(cloud_pass0,
                           dem_masking,
                           fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
     
@@ -273,7 +297,7 @@ if (total_snow_fraction > fsnow_total_lim){
     
     dem_band <- calc(dem, fun = function(x) {return(x > zmin & x < zmax)})
     
-    cloud_band <- overlay(cloud_pass0_mask,
+    cloud_band <- overlay(cloud_pass0,
                           dem_masking,
                           fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
     
@@ -289,7 +313,7 @@ if (total_snow_fraction > fsnow_total_lim){
       dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
       dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
       
-      cloud_band <- overlay(cloud_pass0_mask,
+      cloud_band <- overlay(cloud_pass0,
                             dem_masking,
                             fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
       
@@ -307,24 +331,28 @@ if (total_snow_fraction > fsnow_total_lim){
   zs <- zmin - (2*bh)
   
   ### SNOW PASS 2
-  snow_pass2 <- overlay(NDSI_crop_20m,
-                        B4_crop_20m_masking_FLOAT,
+  snow_pass2 <- overlay(NDSI_20m,
+                        B4_20m_FLOAT,
                         dem_masking,
-                        B11_crop_20m_masking_FLOAT,
+                        B11_20m_FLOAT,
                         fun=function(a,b,c,d) {return(a>n2 & b>r2 & c>zs & d<s2)})
   
   ### CLOUD PASS2
   cloud_pass2 <- overlay(snow_pass2,
                          dark_clouds,
-                         B4_crop_20m_masking_FLOAT,
+                         B4_20m_FLOAT,
                          fun=function(x,y,z) {return(x != 1 & y == 1 & z > rB4_backtocloud)})
   
   cloud_pass2[is.na(cloud_pass2)] <- 0
-  cloud_pass2_mask <- mask(cloud_pass2,maskFmask_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+  
+  if (partial == TRUE){
+    cloud_pass2 <- mask(cloud_pass2,mask_crop_nodata_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+  }
+  
   
   ###CLOUD FINAL
-  cloud_final <- overlay(cloud_pass1_mask,
-                         cloud_pass2_mask,
+  cloud_final <- overlay(cloud_pass1,
+                         cloud_pass2,
                          fun = function(x, y) {x == 1 | y == 1})
   
   
@@ -377,14 +405,18 @@ if (total_snow_fraction > fsnow_total_lim){
   
   cloud_pass3 <- overlay(snow_pass1,
                          dark_clouds,
-                         B4_crop_20m_masking_SCL_FLOAT,
+                         B4_20m_FLOAT,
                          fun = function(x,y,z) {return(x != 1 & y == 1 & z > rB4_backtocloud)})
   
   cloud_pass3[is.na(cloud_pass3)] <- 0
-  cloud_pass3_mask <- mask(cloud_pass3,maskSCL_crop_compl_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
   
-  cloud_final <- overlay(cloud_pass1_mask,
-                         cloud_pass3_mask,
+  if (partial == TRUE){
+    cloud_pass3 <- mask(cloud_pass3,mask_crop_nodata_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+  }
+  
+  
+  cloud_final <- overlay(cloud_pass1,
+                         cloud_pass3,
                          fun = function(x, y) {return(x == 1 | y == 1)})
   
   
