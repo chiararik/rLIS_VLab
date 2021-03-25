@@ -130,12 +130,11 @@ total_NA_cells <- sum(SCL_crop_20m [!is.na(SCL_crop_20m)] == 0)
 total_raster_cells <- ncell(SCL_crop_20m)
 total_NA_fraction <- round(total_NA_cells*100/total_raster_cells,0)
 
-if (total_NA_fraction > 25){
+if (total_NA_fraction >= 2){
   
   partial <- TRUE
   
   nd_20m <- calc(SCL_20m, fun=function(x){x == 0})
-  #nd_20m <- SCL_20m[SCL_20m == 0]
   nodata_20m <- clump(nd_20m,directions=4, gaps=TRUE)
   mask_crop_nodata_20m <- (nodata_20m != 1)
   
@@ -258,7 +257,7 @@ if (total_snow_fraction > fsnow_total_lim){
   cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
   dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
   
-  while (cloudy_band_pixel == dem_band_pixel & dem_band_pixel > 0) {
+  while (dem_band_free_pixel < fclear_lim) {
     
     zmax <- zmax - bh
     zmin <- zmin - bh
@@ -285,6 +284,43 @@ if (total_snow_fraction > fsnow_total_lim){
   # calculates the snow fraction x altitude band
   band_snow_fraction <- snow_band_pixel/dem_band_free_pixel*100
   
+  # try again at a lower altitude
+  
+  if (band_snow_fraction == 0){
+    
+    zmax <- zmax - bh
+    zmin <- zmin - bh
+    
+    dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
+    dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
+    
+    cloud_band <- overlay(cloud_pass0,
+                          dem_masking,
+                          fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
+    
+    cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
+    dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
+    
+    # calculate snow extension x altitude band
+    snow_band <- overlay(snow_pass1,
+                         dem_masking,
+                         fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
+    
+    snow_band_pixel <- sum(snow_band[!is.na(snow_band)]==1)
+    
+    # calculate snow extension x altitude band
+    band_snow_fraction <- snow_band_pixel/dem_band_free_pixel*100
+    
+    # se continua a non esserci neve allora reimposta zmin e zmax
+    
+    if (band_snow_fraction == 0){
+      zmax <- zmax + bh
+      zmin <- zmin + bh
+    }
+    
+  }
+  
+  
   # find the lowest altitudinal band for which the snow cover fraction is > 0.1
   while (band_snow_fraction > fsnow_lim & snow_band_pixel > 0){
     
@@ -305,7 +341,7 @@ if (total_snow_fraction > fsnow_total_lim){
     cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
     dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
     
-    while (cloudy_band_pixel == dem_band_pixel & dem_band_pixel > 0) {
+    while (dem_band_free_pixel < fclear_lim) {
       
       zmax <- zmax - bh
       zmin <- zmin - bh
@@ -374,11 +410,11 @@ if (total_snow_fraction > fsnow_total_lim){
   # save frequency table as data frame
   f<-as.data.frame(f)
   # which rows of the data.frame are only represented by clumps under 4 pixels?
-  str(which(f$count <= 5))
+  str(which(f$count <= 3))
   # which values do these correspond to?
-  str(f$value[which(f$count <= 5)])
+  str(f$value[which(f$count <= 3)])
   # put these into a vector of clump ID's to be removed
-  excludeID <- f$value[which(f$count <= 5)]
+  excludeID <- f$value[which(f$count <= 3)]
   # assign NA to all clumps whose IDs are found in excludeID
   patches[patches %in% excludeID] <- 0
   # reclassify: 0 are pixels to remove and all the rest is 1
@@ -390,8 +426,8 @@ if (total_snow_fraction > fsnow_total_lim){
   
   # replace only NA values
   output_SnowCloud_20m_gap_filled <- focal(output_SnowCloud_20m_gap,
-                                           w=matrix(1,nrow=7,ncol=7),
-                                           fun=median,
+                                           w=matrix(1,nrow=5,ncol=5),
+                                           fun=max,
                                            na.rm=TRUE,
                                            NAonly=TRUE,
                                            pad=TRUE)
@@ -436,11 +472,11 @@ if (total_snow_fraction > fsnow_total_lim){
   # save frequency table as data frame
   f<-as.data.frame(f)
   # which rows of the data.frame are only represented by clumps under 4 pixels?
-  str(which(f$count <= 5))
+  str(which(f$count <= 3))
   # which values do these correspond to?
-  str(f$value[which(f$count <= 5)])
+  str(f$value[which(f$count <= 3)])
   # put these into a vector of clump ID's to be removed
-  excludeID <- f$value[which(f$count <= 5)]
+  excludeID <- f$value[which(f$count <= 3)]
   # assign NA to all clumps whose IDs are found in excludeID
   patches[patches %in% excludeID] <- 0
   # reclassify: 0 are pixels to remove and all the rest is 1
@@ -452,8 +488,8 @@ if (total_snow_fraction > fsnow_total_lim){
   
   # replace only NA values
   output_SnowCloud_20m_gap_filled <- focal(output_SnowCloud_20m_gap,
-                                           w=matrix(1,nrow=7,ncol=7),
-                                           fun=median,
+                                           w=matrix(1,nrow=5,ncol=5),
+                                           fun=max,
                                            na.rm=TRUE,
                                            NAonly=TRUE,
                                            pad=TRUE)
