@@ -20,7 +20,7 @@
       "obligation": true,
       "hasDefault": false,
       "valueSchema": "url",
-      "target": "data/fmask.tif"
+      "target": "data/Fmask.tif"
     },
     {
       "id": "InDataAOI",
