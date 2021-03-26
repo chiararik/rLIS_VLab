@@ -126,8 +126,8 @@ if (extent(dem) != extent(B3_20m)){
 ###### No data masking
 partial <- FALSE
 
-total_NA_cells <- sum(SCL_crop_20m [!is.na(SCL_crop_20m)] == 0)
-total_raster_cells <- ncell(SCL_crop_20m)
+total_NA_cells <- sum(SCL_20m [!is.na(SCL_crop_20m)] == 0)
+total_raster_cells <- ncell(SCL_20m)
 total_NA_fraction <- round(total_NA_cells*100/total_raster_cells,0)
 
 if (total_NA_fraction >= 2){
@@ -501,8 +501,6 @@ if (total_snow_fraction > fsnow_total_lim){
 
 print("Processing finished")
 
-
-
 ############ remove temp files
 
 dir_base<-getwd()
@@ -516,6 +514,4 @@ setwd(dir_base)
 
 setwd(repo_data)
 
-
-
-print("Workflow Finished")
+print("Workflow finished")
