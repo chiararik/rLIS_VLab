@@ -191,8 +191,8 @@ s2 <- 0.250
 ### NDSI at 20m
 
 NDSI_20m <- ((B3_20m_FLOAT - B11_20m_FLOAT)/(B3_20m_FLOAT + B11_20m_FLOAT))*10000
-NDSI_20m[NDSI_crop_20m < -10000] = -10000
-NDSI_20m[NDSI_crop_20m > 10000] = 10000
+NDSI_20m[NDSI_20m < -10000] = -10000
+NDSI_20m[NDSI_20m > 10000] = 10000
 
 ### CLOUD PASS 1
 cloud_pass0 <- Fmask_crop_20m_masking
