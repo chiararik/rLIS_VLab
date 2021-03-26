@@ -126,8 +126,8 @@ if (extent(dem) != extent(B3_20m)){
 ###### No data masking
 partial <- FALSE
 
-total_NA_cells <- sum(SCL_crop_20m [!is.na(SCL_crop_20m)] == 0)
-total_raster_cells <- ncell(SCL_crop_20m)
+total_NA_cells <- sum(SCL_20m [!is.na(SCL_20m)] == 0)
+total_raster_cells <- ncell(SCL_20m)
 total_NA_fraction <- round(total_NA_cells*100/total_raster_cells,0)
 
 if (total_NA_fraction >= 2){
