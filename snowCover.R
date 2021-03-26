@@ -126,7 +126,7 @@ if (extent(dem) != extent(B3_20m)){
 ###### No data masking
 partial <- FALSE
 
-total_NA_cells <- sum(SCL_20m [!is.na(SCL_crop_20m)] == 0)
+total_NA_cells <- sum(SCL_20m [!is.na(SCL_20m)] == 0)
 total_raster_cells <- ncell(SCL_20m)
 total_NA_fraction <- round(total_NA_cells*100/total_raster_cells,0)
 
@@ -430,7 +430,7 @@ if (total_snow_fraction > fsnow_total_lim){
                                            NAonly=TRUE,
                                            pad=TRUE)
   
-  output_SnowCloud_20m_name <- paste0("Snow&Cloud_mask_20m_",date,"_",sensore,"_L2A_",tile,"_",ripresa,"_TA",ora_acq,"_TP",ora_proc,".tif")
+  output_SnowCloud_20m_name <- paste0("SnowCloud_mask_20m.tif")
   writeRaster(output_SnowCloud_20m_gap_filled, output_SnowCloud_20m_name, datatype='INT2S', format = "GTiff", overwrite=TRUE)
   
 } else {
@@ -492,7 +492,7 @@ if (total_snow_fraction > fsnow_total_lim){
                                            NAonly=TRUE,
                                            pad=TRUE)
   
-  output_SnowCloud_20m_name <- paste0("Snow&Cloud_mask_20m_",date,"_",sensore,"_L2A_",tile,"_",ripresa,"_TA",ora_acq,"_TP",ora_proc,".tif")
+  output_SnowCloud_20m_name <- paste0("SnowCloud_mask_20m.tif")
   writeRaster(output_SnowCloud_20m_gap_filled, output_SnowCloud_20m_name, datatype='INT2S', format = "GTiff", overwrite=TRUE)
   
 }
@@ -515,3 +515,4 @@ setwd(dir_base)
 setwd(repo_data)
 
 print("Workflow finished")
+
