@@ -286,7 +286,7 @@ if (total_snow_fraction > fsnow_total_lim){
   
   # try again at a lower altitude
   
-  if (band_snow_fraction == 0){
+  if (band_snow_fraction == 0 | anyNA(band_snow_fraction)){
     
     zmax <- zmax - bh
     zmin <- zmin - bh
@@ -311,15 +311,13 @@ if (total_snow_fraction > fsnow_total_lim){
     # calculate snow extension x altitude band
     band_snow_fraction <- snow_band_pixel/dem_band_free_pixel*100
     
-    # se continua a non esserci neve allora reimposta zmin e zmax
-    
-    if (band_snow_fraction == 0){
+    # if there is still non snow reset zmin and zmax
+    if (band_snow_fraction == 0 | anyNA(band_snow_fraction)){
       zmax <- zmax + bh
       zmin <- zmin + bh
     }
     
   }
-  
   
   # find the lowest altitudinal band for which the snow cover fraction is > 0.1
   while (band_snow_fraction > fsnow_lim & snow_band_pixel > 0){
