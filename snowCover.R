@@ -102,6 +102,8 @@ if (aoifile == TRUE){
   B4_20m <- crop(B4_20m, aoi)
   B11_20m <- crop(B11_20m, aoi)
   SCL_20m <- crop(SCL_20m, aoi)
+  
+  print("data cropped")
 }
 
 ##################### Pre-processing DEM
@@ -123,6 +125,8 @@ if (extent(dem) != extent(B3_20m)){
   dem <- setExtent(dem, extent(B3_20m), keepres=FALSE)
 }
 
+print("dem ready")
+
 ###### No data masking
 partial <- FALSE
 
@@ -143,6 +147,9 @@ if (total_NA_fraction >= 2){
   B11_20m <- mask(B11_20m, mask_crop_nodata_20m, inverse=TRUE, maskvalue=1, updatevalue=NA)
   
   dem_masking <- mask(dem,mask_crop_nodata_20m,inverse=TRUE,maskvalue=1,updatevalue=NA)
+  
+  print("no data masked")
+  
 }
 
 if (partial == FALSE) {
@@ -195,7 +202,7 @@ NDSI_20m[NDSI_20m < -10000] = -10000
 NDSI_20m[NDSI_20m > 10000] = 10000
 
 ### CLOUD PASS 1
-cloud_pass0 <- Fmask_crop_20m_masking
+cloud_pass0 <- Fmask_20m
 
 cloud_pass0[cloud_pass0 == 1] <- 0
 cloud_pass0[cloud_pass0 == 4] <- 1
