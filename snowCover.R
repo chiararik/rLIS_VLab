@@ -227,8 +227,7 @@ if (partial == TRUE){
 snow_pass1 <- overlay(NDSI_20m,
                       B4_20m_FLOAT,
                       B11_20m_FLOAT,
-                      cloud_pass1,
-                      fun=function(a,b,c,d) {return(a>n1 & b>r1 & c<s1 & d != 1)})
+                      fun=function(a,b,c,d) {return(a>n1 & b>r1 & c<s1)})
 
 ### TEST "ENOUGH SNOW?"
 
@@ -257,7 +256,7 @@ if (total_snow_fraction > fsnow_total_lim){
   cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
   dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
   
-  while (dem_band_free_pixel < fclear_lim) {
+  while (dem_band_free_pixel < fclear_lim & dem_band_free_pixel>0) {
     
     zmax <- zmax - bh
     zmin <- zmin - bh
@@ -339,7 +338,7 @@ if (total_snow_fraction > fsnow_total_lim){
     cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
     dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
     
-    while (dem_band_free_pixel < fclear_lim) {
+    while (dem_band_free_pixel < fclear_lim & dem_band_free_pixel>0) {
       
       zmax <- zmax - bh
       zmin <- zmin - bh
