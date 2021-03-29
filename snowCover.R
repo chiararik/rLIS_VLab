@@ -215,7 +215,7 @@ if (partial == TRUE){
 
 
 # B4 noise reduction
-B4_20m_FLOAT_filtered <- focal(B4_20m_FLOAT, w=matrix(1, nc=3, nr=3), fun=median, na.rm=TRUE, pad=TRUE, padValue=NA)
+B4_20m_FLOAT_filtered <- focal(B4_20m_FLOAT, w=matrix(1/9, nc=3, nr=3), na.rm=TRUE, pad=TRUE, padValue=NA)
 
 # Dark-Cloud pixel
 dark_clouds <- overlay(Fmask_20m,
@@ -414,11 +414,11 @@ if (total_snow_fraction > fsnow_total_lim){
   # save frequency table as data frame
   f<-as.data.frame(f)
   # which rows of the data.frame are only represented by clumps under 4 pixels?
-  str(which(f$count <= 3))
+  str(which(f$count <= 5))
   # which values do these correspond to?
-  str(f$value[which(f$count <= 3)])
+  str(f$value[which(f$count <= 5)])
   # put these into a vector of clump ID's to be removed
-  excludeID <- f$value[which(f$count <= 3)]
+  excludeID <- f$value[which(f$count <= 5)]
   # assign NA to all clumps whose IDs are found in excludeID
   patches[patches %in% excludeID] <- 0
   # reclassify: 0 are pixels to remove and all the rest is 1
@@ -430,7 +430,7 @@ if (total_snow_fraction > fsnow_total_lim){
   
   # replace only NA values
   output_SnowCloud_20m_gap_filled <- focal(output_SnowCloud_20m_gap,
-                                           w=matrix(1,nrow=5,ncol=5),
+                                           w=matrix(1,nrow=7,ncol=7),
                                            fun=max,
                                            na.rm=TRUE,
                                            NAonly=TRUE,
@@ -476,11 +476,11 @@ if (total_snow_fraction > fsnow_total_lim){
   # save frequency table as data frame
   f<-as.data.frame(f)
   # which rows of the data.frame are only represented by clumps under 4 pixels?
-  str(which(f$count <= 3))
+  str(which(f$count <= 5))
   # which values do these correspond to?
-  str(f$value[which(f$count <= 3)])
+  str(f$value[which(f$count <= 5)])
   # put these into a vector of clump ID's to be removed
-  excludeID <- f$value[which(f$count <= 3)]
+  excludeID <- f$value[which(f$count <= 5)]
   # assign NA to all clumps whose IDs are found in excludeID
   patches[patches %in% excludeID] <- 0
   # reclassify: 0 are pixels to remove and all the rest is 1
@@ -492,7 +492,7 @@ if (total_snow_fraction > fsnow_total_lim){
   
   # replace only NA values
   output_SnowCloud_20m_gap_filled <- focal(output_SnowCloud_20m_gap,
-                                           w=matrix(1,nrow=5,ncol=5),
+                                           w=matrix(1,nrow=7,ncol=7),
                                            fun=max,
                                            na.rm=TRUE,
                                            NAonly=TRUE,
