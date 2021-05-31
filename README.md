@@ -4,4 +4,4 @@ Snow Cover algorithm extracts the snow cover extent from a Sentinel-2 image and 
 
 **Full description:** [A Revised Snow Cover Algorithm to Improve Discrimination between Snow and Clouds: A Case Study in Gran Paradiso National Park](https://doi.org/10.3390/rs13101957)
 
-**VLab Module:** [VLab](https://vl.geodab.org/)  (Path: Home > Workflow > Search "Snow cover" > Press "Creare New Experiment")
+**VLab Module:** [VLab](https://vl.geodab.org/)  (Freely accessible from: Home > Workflow > Search "Snow cover" > Press "Creare New Experiment")
