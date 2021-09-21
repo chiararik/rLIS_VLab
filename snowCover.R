@@ -247,19 +247,62 @@ total_snow_fraction <- total_snow_cells*100/total_cells
 if (total_snow_fraction > fsnow_total_lim){
   
   ### SNOWLINE ELEVATION
+
+bh <- 100
+zmax <- round(maxValue(dem_masking),-2)
+zmin <- zmax - bh
+
+#calcola estensione banda altitudinale libera da nuvole
+dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
+dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
+
+cloud_band <- overlay(cloud_pass0,
+                      dem_band,
+                      fun=function(x,y) {return(x == 1 & y == 1)})
+
+cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
+dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
+
+while (dem_band_free_pixel < fclear_lim) {
   
-  bh <- 100
-  zmax <- round(maxValue(dem_masking),-2)
-  zmin <- zmax - bh
+  zmax <- zmax - bh
+  zmin <- zmin - bh
   
-  # calculates cloud-free altitude band extension
   dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
   dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
   
   cloud_band <- overlay(cloud_pass0,
-                        dem_masking,
-                        fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
+                        dem_band,
+                        fun=function(x,y) {return(x == 1 & y ==1)})
   
+  cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
+  dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
+  
+}
+
+#calcola estensione neve x banda altitudinale
+snow_band <- overlay(snow_pass1,
+                     dem_band,
+                     fun=function(x,y) {return(x == 1 & y == 1)})
+
+snow_band_pixel <- sum(snow_band[!is.na(snow_band)]==1)
+
+#calcola la frazione neve x banda altitudinale
+band_snow_fraction <- snow_band_pixel/dem_band_pixel*100
+
+#trova la banda altitudinale più bassa per la quale la snow cover fraction è > 0.1
+while (band_snow_fraction > fsnow_lim & snow_band_pixel > 0){
+  
+  zmax <- zmax - bh
+  zmin <- zmin - bh
+  
+  dem_band <- calc(dem, fun = function(x) {return(x > zmin & x < zmax)})
+  
+  cloud_band <- overlay(cloud_pass0,
+                        dem_band,
+                        fun=function(x,y) {return(x == 1 & y == 1)})
+  
+  dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
   cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
   dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
   
@@ -280,95 +323,21 @@ if (total_snow_fraction > fsnow_total_lim){
     
   }
   
-  # calculate snow extension x altitude band
   snow_band <- overlay(snow_pass1,
-                       dem_masking,
-                       fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
+                       dem_band,
+                       fun=function(x,y) {return(x == 1 & y == 1)})
   
   snow_band_pixel <- sum(snow_band[!is.na(snow_band)]==1)
+  band_snow_fraction <- snow_band_pixel/dem_band_pixel*100
   
-  # calculates the snow fraction x altitude band
-  band_snow_fraction <- snow_band_pixel/dem_band_free_pixel*100
-  
-  # try again at a lower altitude
-  
-  if (band_snow_fraction == 0 | anyNA(band_snow_fraction)){
-    
-    zmax <- zmax - bh
-    zmin <- zmin - bh
-    
-    dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
-    dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
-    
-    cloud_band <- overlay(cloud_pass0,
-                          dem_masking,
-                          fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-    
-    cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
-    dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
-    
-    # calculate snow extension x altitude band
-    snow_band <- overlay(snow_pass1,
-                         dem_masking,
-                         fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-    
-    snow_band_pixel <- sum(snow_band[!is.na(snow_band)]==1)
-    
-    # calculate snow extension x altitude band
-    band_snow_fraction <- snow_band_pixel/dem_band_free_pixel*100
-    
-    # if there is still non snow reset zmin and zmax
-    if (band_snow_fraction == 0 | anyNA(band_snow_fraction)){
-      zmax <- zmax + bh
-      zmin <- zmin + bh
-    }
-    
-  }
-  
-  # find the lowest altitudinal band for which the snow cover fraction is > 0.1
-  while (band_snow_fraction > fsnow_lim & snow_band_pixel > 0){
-    
-    zmax <- zmax - bh
-    zmin <- zmin - bh
-    
-    snow_band <- overlay(snow_pass1,
-                         dem_masking,
-                         fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-    
-    dem_band <- calc(dem, fun = function(x) {return(x > zmin & x < zmax)})
-    
-    cloud_band <- overlay(cloud_pass0,
-                          dem_masking,
-                          fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-    
-    dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
-    cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
-    dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
-    
-    while (dem_band_free_pixel < fclear_lim & dem_band_free_pixel>0) {
-      
-      zmax <- zmax - bh
-      zmin <- zmin - bh
-      
-      dem_band <- calc(dem_masking, fun = function(x) {return(x > zmin & x < zmax)})
-      dem_band_pixel <- sum(dem_band[!is.na(dem_band)])
-      
-      cloud_band <- overlay(cloud_pass0,
-                            dem_masking,
-                            fun=function(x,y) {return(x == 1 & (y >= zmin & y < zmax))})
-      
-      cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
-      dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
-      
-    }
-    
-    snow_band_pixel <- sum(snow_band[!is.na(snow_band)]==1)
-    band_snow_fraction <- snow_band_pixel/dem_band_free_pixel*100
-    
-  }
-  
-  # define lower snow limit as two bands lower than the one previously found
-  zs <- zmin - (2*bh)
+}
+
+#definisci limite inferiore neve come due bande inferiori a quella precedentemente trovata
+zs <- zmin - (2*bh)
+
+if (zs < round(minValue(dem_masking),-2)){
+  zs <- minValue(dem_masking)
+}
   
   ### SNOW PASS 2
   snow_pass2 <- overlay(NDSI_20m,
