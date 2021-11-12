@@ -263,7 +263,7 @@ cloud_band <- overlay(cloud_pass0,
 cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
 dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
 
-while (dem_band_free_pixel < fclear_lim & dem_band_free_pixel>=0) {
+while (dem_band_free_pixel < fclear_lim & zmin>0) {
   
   zmax <- zmax - bh
   zmin <- zmin - bh
@@ -306,7 +306,7 @@ while (band_snow_fraction > fsnow_lim & snow_band_pixel > 0){
   cloudy_band_pixel <- sum(cloud_band[!is.na(cloud_band)]==1)
   dem_band_free_pixel <- dem_band_pixel - cloudy_band_pixel
   
-  while (dem_band_free_pixel < fclear_lim & dem_band_free_pixel>=0) {
+  while (dem_band_free_pixel < fclear_lim & zmin>0) {
     
     zmax <- zmax - bh
     zmin <- zmin - bh
