@@ -29,7 +29,7 @@ if (aoizip == TRUE){
   aoifile <- TRUE
   unzip("aoi.zip", files = NULL, list = FALSE, overwrite = TRUE,
         junkpaths = FALSE, exdir = ".", unzip = "internal", setTimes = FALSE)
-  aoi <- shapefile(pattern=glob2rx(paste0("*.shp")))
+  aoi <- shapefile(pattern=glob2rx("*.shp"))
 }
 
 print("aoi ok")
