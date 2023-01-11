@@ -22,14 +22,14 @@ setwd(repo_data)
 
 ###### Read AOI (if present) and DEM
 
-aoizip <- file.exists("*.zip")
+aoizip <- file.exists(pattern=glob2rx("*.zip"))
 aoifile <- FALSE
 
 if (aoizip == TRUE){
   aoifile <- TRUE
   unzip("aoi.zip", files = NULL, list = FALSE, overwrite = TRUE,
         junkpaths = FALSE, exdir = ".", unzip = "internal", setTimes = FALSE)
-  aoi <- shapefile("*.shp")
+  aoi <- shapefile(pattern=glob2rx(paste0("*.shp")))
 }
 
 print("aoi ok")
