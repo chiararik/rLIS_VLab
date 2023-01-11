@@ -22,7 +22,7 @@ setwd(repo_data)
 
 ###### Read AOI (if present) and DEM
 
-aoizip <- file.exists(list.files(pattern=glob2rx("*.zip")))
+aoizip <- file.exists("aoi.zip")
 aoifile <- FALSE
 
 if (aoizip == TRUE){
